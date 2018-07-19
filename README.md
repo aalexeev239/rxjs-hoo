@@ -1,4 +1,4 @@
-# RxJS: введение
+# RxJS: Higher Order Observables
 
 ## **Важно: пожалуйста, оцените выступлениe**
  
