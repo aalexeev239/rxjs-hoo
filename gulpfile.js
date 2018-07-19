@@ -37,7 +37,7 @@ gulp.task('watch-js', ['scripts'], done => {
     done();
 });
 
-gulp.task('prepare', () => {
+gulp.task('prepare', ['scripts'], () => {
 
     const shower = gulp.src([
         '**',
