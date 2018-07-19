@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>RxJS: Higher Order Observables</title>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="node_modules/tinkoff-shower/theme/styles.css">
+    <link rel="stylesheet" href="custom/styles.css">
+
+    <link rel="icon" sizes="16x16" href="pictures/favicon-16x16.png">
+    <link rel="icon" sizes="32x32" href="pictures/favicon-32x32.png">
+    <link rel="icon" sizes="96x96" href="pictures/favicon-96x96.png">
+</head>
+<body class="shower list theme-hoo">
+
+    <template id="logger-template" class="hidden">
+        <div class="logger-item"></div>
+    </template>
+
+    <template id="timeline-template" class="hidden">
+        <div class="timeline" style="width: 0px;"></div>
+    </template>
+
+    <header class="caption">
+        <h1>RxJS: Higher Order Observables</h1>
+    </header>
+
+    <section class="slide invert" id="cover">
+        <div class="intro">
+            <img width="300" class="intro-img" src="pictures/rxjs-logo.png" alt="RxJS">
+        </div>
+        <div class="cover-title">
+            <h2>RxJS<br>Higher Order Observables</h2>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Привет</h2>
+        <div class="two-columns">
+            <div>
+                <img src="pictures/author.png" width="100%" alt="">
+            </div>
+            <div>
+                <br>
+                <h2>Андрей Алексеев</h2>
+                <p class="nowrap">
+                    <span class="emoji">👨‍💻</span>
+                    <a href="https://www.tinkoff.ru/business/"
+                       target="_blank"
+                       rel="noopener noreferrer">Tinkoff business</a>
+                </p>
+                <p class="nowrap">
+                    <span class="emoji">👨‍🏫</span>
+                    <a href="https://fintech.tinkoff.ru/"
+                       target="_blank"
+                       rel="noopener noreferrer">Tinkoff Fintech School</a></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">def</h2>
+        <div class="slide-description">
+            <p>Higher Order Observable</p>
+            <p>Observable высшего порядка</p>
+            <p>Observable, значениями которого являются другие&nbsp;Observable</p>
+        </div>
+    </section>
+
+
+    <section class="slide">
+        <h2 class="slide-header">Аналогия массивов</h2>
+        <div class="logger-content">
+            <small>
+            <pre>
+                <code>const mapping = value => [value, value ** 2, value ** 3];</code>
+                <code class="next">const mapped = [1, 2, 3].map(item => mapping(item));</code>
+                <br>
+                <code class="text-muted next">[<span class="text-red">[1,1,1]</span>,<span class="text-green">[2,4,8]</span>,<span class="text-purple">[3,9,27]</span>]</code>
+                <code class="text-muted next"><span class="text-red">1, 1, 1</span>, <span class="text-green">2, 4, 8</span>, <span class="text-purple">3, 9, 27</span></code>
+                <code class="text-muted next"><span class="text-red">1</span>, <span class="text-green">2</span>, <span class="text-purple">3</span>, <span class="text-red">1</span>, <span class="text-green">4</span>, <span class="text-purple">9</span>, <span class="text-red">1</span>, <span class="text-green">8</span>, <span class="text-purple">27</span></code>
+            </pre>
+            </small>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Observable из Observable</h2>
+        <div class="logger-content">
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">map</span>(value => <span class="rxjs-creation">from</span>(mapping(value)))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <div class="next">
+                    <br>
+                    <code class="text-muted">&lt;Observable&gt;</code>
+                    <code class="text-muted">&lt;Observable&gt;</code>
+                    <code class="text-muted">&lt;Observable&gt;</code>
+                </div>
+            </pre>
+            </small>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Подписка в подписке</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.subInSub)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">map</span>(value => <span class="rxjs-creation">from</span>(mapping(value)))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(observable$ => {</code>
+                <code>         observable$</code>
+                <code>            .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <code>    });</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Асинхронный вариант</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.asyncMappingExample)">▶</button>
+            <small>
+            <pre>
+                <code>const mapping = value => [value, value ** 2, value ** 3];</code>
+                <br>
+                <code>const asyncMapping = value => {</code>
+                <code>    return <span class="rxjs-creation">interval</span>(100)</code>
+                <code>        .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>            <span class="rxjs-operator">map</span>(i => value ** (i + 1)),</code>
+                <code>            <span class="rxjs-operator">take</span>(3)</code>
+                <code>        );</code>
+                <br>
+                <code>asyncMapping(2)</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+            <div class="logger-playground"></div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Подписка в подписке асинхронно</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.subInSubAsync)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">map</span>(value => asyncMapping(value))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(observable$ => {</code>
+                <code>         observable$</code>
+                <code>            .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <code>    });</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Подписка в подписке асинхронно</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.subInSubUnsub)">▶</button>
+            <small>
+            <pre>
+                <code>const subscription = <span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">map</span>(value => asyncMapping(value))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(observable$ => {</code>
+                <code>         observable$</code>
+                <code>            .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <code>    });</code>
+                <br>
+                <code>setTimeout(() => {</code>
+                <code>    subscription.unsubscribe();</code>
+                <code>    console.log('unsubscribe!');</code>
+                <code>}, 150);</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeAll</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeAllExample)">▶</button>
+            <small>
+            <pre>
+                <code>const subscription = <span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">map</span>(value => asyncMapping(value)),</code>
+                <code>        <span class="rxjs-operator">mergeAll</span>()</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <br>
+                <code>setTimeout(() => {</code>
+                <code>    subscription.unsubscribe();</code>
+                <code>    console.log('unsubscribe!');</code>
+                <code>}, 150);</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">map + mergeAll = mergeMap (aka flatMap)</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeMapExample)">▶</button>
+            <small>
+            <pre>
+                <code>const subscription = <span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(value => asyncMapping(value))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <br>
+                <code>setTimeout(() => {</code>
+                <code>    subscription.unsubscribe();</code>
+                <code>    console.log('unsubscribe!');</code>
+                <code>}, 150);</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeMap: визуализация</h2>
+        <button class="btn btn-play" onclick="timeline.run(code.operatorMergeMap, this)">▶</button>
+        <div class="slide-description">
+            <div class="playground playground-two-streams" id="operatorMergeMap"></div>
+            <pre>
+            <code><span class="rxjs-creation">timer</span>(0, 1500).<span class="rxjs-pipe">pipe</span>(</code>
+            <code>    <span class="rxjs-operator">take</span>(3),</code>
+            <code>    <span class="rxjs-operator">map</span>((value) => 'abc'[value]), <span class="text-muted">// a → b → c</span></code>
+            <code>    <mark><span class="rxjs-operator">mergeMap</span></mark>(value => {</code>
+            <code>        return <span class="rxjs-creation">timer</span>(0, 450).<span class="rxjs-pipe">pipe</span>(</code>
+            <code>            <span class="rxjs-operator">take</span>(6),</code>
+                <code>            <span class="rxjs-operator">map</span>(innerValue => value + innerValue)); <span class="text-muted">// x0 → x1 → x2 → ...</span></code>
+            <code>    })</code>
+            <code>).<span class="rxjs-subscribe">subscribe</span>(renderValue);</code>
+        </pre>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeMap: selector</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeMapSelector)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(</code>
+                <code>            value => asyncMapping(value),</code>
+                <code>            <mark>(outValue, inValue, outIndex, inIndex) => {</mark></code>
+                <code>                <mark>console.log(`${outValue} → ${inValue}` +</mark></code>
+                <code>                <mark>` | ${outIndex} --- ${inIndex}`);</mark></code>
+                <code>                <mark>return inValue;</mark></code>
+                <code>            <mark>}</mark></code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeMap: counter</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeMapCounter1)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(value => asyncMapping(value))</code>
+                <code>        <span class="rxjs-operator">toArray()</span></code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeMap: counter</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeMapCounter2)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(value => asyncMapping(value))</code>
+                <code>        <span class="rxjs-operator">toArray()</span></code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+                <br>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(value => asyncMapping(value), <mark>2</mark>)</code>
+                <code>        <span class="rxjs-operator">toArray()</span></code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeMap: counter</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeMapCounter3)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(value => asyncMapping(value), <mark>1</mark>)</code>
+                <code>        <span class="rxjs-operator">toArray()</span></code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">concatMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.concatMapExample)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">concatMap</span>(value => asyncMapping(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">switchMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.switchMapExample)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => asyncMapping(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">SwitchMap marble</h2>
+        <div class="slide-description text-center">
+            <img class="img-boxed img-centered"
+                 style="margin-top: 50px;"
+                 width="700"
+                 src="pictures/rxmarbles-switch-map.png"
+                 alt="Rx Marble Diagram: switchMap">
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">switchMap: визуализация</h2>
+        <button class="btn btn-play" onclick="timeline.run(code.operatorSwitchMap, this)">▶</button>
+        <div class="slide-description">
+            <div class="playground playground-two-streams" id="operatorSwitchMap"></div>
+            <pre>
+            <code><span class="rxjs-creation">timer</span>(0, 1500).<span class="rxjs-pipe">pipe</span>(</code>
+            <code>    <span class="rxjs-operator">take</span>(3),</code>
+            <code>    <span class="rxjs-operator">map</span>((value) => 'abc'[value]), <span class="text-muted">// a → b → c</span></code>
+            <code>    <mark><span class="rxjs-operator">switchMap</span></mark>(value => {</code>
+            <code>        return <span class="rxjs-creation">timer</span>(0, 450).<span class="rxjs-pipe">pipe</span>(</code>
+            <code>            <span class="rxjs-operator">take</span>(6),</code>
+                <code>            <span class="rxjs-operator">map</span>(innerValue => value + innerValue)); <span class="text-muted">// x0 → x1 → x2 → ...</span></code>
+            <code>    })</code>
+            <code>).<span class="rxjs-subscribe">subscribe</span>(renderValue);</code>
+        </pre>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">SwitchMap и отписки</h2>
+        <div class="slide-description">
+            <p><strong>SwitchMap</strong> автоматически отписывается во внутренних Observable — вызывает subscription.<span class="rxjs-subscribe">unsubscribe</span>()
+            </p>
+            <p class="next">Можем написать отменяемые запросы:</p>
+            <ul>
+                <li class="next">Angular HttpClient</li>
+                <li class="next">Fetch + AbortController</li>
+                <li class="next">XMLHttpRequest -> xhr.abort()</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Пример: отменяемый fetch</h2>
+        <div class="slide-description">
+        <pre>
+            <code>const request$ = <span class="rxjs-creation">Observable.create</span>((observer) => {</code>
+            <div class="next">
+            <code>    const controller = <mark>new AbortController();</mark></code>
+            <code>    const signal = controller.signal;</code>
+            </div>
+            <div class="next">
+            <code> </code>
+            <code>    fetch(url, <mark>{signal}</mark>).then(res => res.json())</code>
+            </div>
+            <div class="next">
+            <code>        .then(data => {</code>
+            <code>                observer.next(data);</code>
+            <code>                observer.complete();</code>
+            <code>            });</code>
+            </div>
+            <div class="next">
+            <code> </code>
+            <code>    <mark>return function unsubscribe() {</mark></code>
+            <code>        <mark>controller.abort();</mark></code>
+            <code>    <mark>};</mark></code>
+            </div>
+            <code>});</code>
+        </pre>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">SwitchMap и запросы</h2>
+        <div class="slide-description">
+            <br>
+            <img class="img-boxed img-centered" width="650" src="pictures/fetch-cancel.png" alt="Отмена fetch-запросов">
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">exhaustMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.exhaustMapExample)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">exhaustMap</span>(value => asyncMapping(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="shout">
+            mergeMap <br> concatMap <br> switchMap <br> exhaustMap
+        </h2>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Фейковый запрос</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.fakeRequest)">▶</button>
+            <small>
+            <pre>
+                <code>const request = value => {</code>
+                <code>    const randomTimeout = 100 + Math.floor(Math.random() * 1000);</code>
+                <code>    const randomResponse = `${value}_${randomTimeout}`;</code>
+                <code></code>
+                <code>    return <span class="rxjs-creation">of</span>(randomResponse).<span class="rxjs-pipe">pipe</span>(<span class="rxjs-creation">delay</span>(randomTimeout));</code>
+                <code>};</code>
+                <br>
+                <code>request(1)</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">mergeMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.mergeMapRequest)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(value => request(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">concatMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.concatMapRequest)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">concatMap</span>(value => request(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">switchMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.switchMapRequest)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => request(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">exhaustMap</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.exhaustMapRequest)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>(1, 2, 3)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">exhaustMap</span>(value => request(value))</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value))</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Итого</h2>
+        <div class="slide-description">
+            <div class="slide-text-multi"><strong>mergeMap</strong> <br>данные нельзя потерять, порядок не важен</div>
+            <div class="slide-text-multi"><strong>concatMap</strong> <br> данные нельзя потерять, порядок важен</div>
+            <div class="slide-text-multi"><strong>switchMap</strong> <br> устаревшие данные потеряются.
+                <br>Удобен из-за автоотписки. Опасен из-за автоотписки <br>(например, create / update / delete операции)</div>
+            <div class="slide-text-multi"><strong>exhaustMap</strong> <br> надо игнорировать внешний поток до наступления какого-то события (например, авторизации)</div>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="shout">
+            Рецепты
+        </h2>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Цепочки запросов</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.chainRequestRecipe)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">of</span>('цепочка')</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => request(value)),</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(anotherValue => request(anotherValue))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value));</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Обработка ошибок</h2>
+        <div class="logger-content">
+            <small>
+            <pre>
+                <code>const requestWithError = value => {</code>
+                <code>    if (value % 2 === 0) {</code>
+                <code>        return throwError('💩');</code>
+                <code>    }</code>
+                <code> </code>
+                <code>    return request(value); <span class="text-muted">// <= 1100 ms</span></code>
+                <code>};</code>
+                <br>
+                <code>const source$ = <span class="rxjs-creation">interval</span>(1200).<span class="rxjs-pipe">pipe</span>(</code>
+                <code>    <span class="rxjs-operator">take</span>(3),</code>
+                <code>    <span class="rxjs-operator">map</span>(v => v + 1)</code>
+                <code>);</code>
+            </pre>
+            </small>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Обработка ошибок</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.errorRecipe1)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">source$</span></code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => requestWithError(value))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(</code>
+                <code>        value => console.log(value),</code>
+                <code>        error => console.log(error)</code>
+                <code>    );</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Обработка ошибок</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.errorRecipe2)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">source$</span></code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => requestWithError(value)),</code>
+                <code>        <span class="rxjs-operator">catchError</span>(error => {</code>
+                <code>            console.log(`catch ${error}`);</code>
+                <code>            return <span class="rxjs-creation">EMPTY</span>;</code>
+                <code>        })</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(</code>
+                <code>        value => console.log(value),</code>
+                <code>        error => console.log(error)</code>
+                <code>    );</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Обработка ошибок</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.errorRecipe3)">▶</button>
+            <small>
+            <pre>
+                <code><span class="rxjs-creation">source$</span></code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => {</code>
+                <code>            return <mark>requestWithError(value)</mark></code>
+                <code>                <mark>.<span class="rxjs-pipe">pipe</span>(<span class="rxjs-operator">catchError</span>(error => {</mark></code>
+                <code>                    <mark>console.log(`catch ${error}`);</mark></code>
+                <code>                    <mark>return <span class="rxjs-creation">EMPTY</span>;</mark></code>
+                <code>                <mark>}));</mark></code>
+                <code>        })</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(</code>
+                <code>        value => console.log(value),</code>
+                <code>        error => console.log(error)</code>
+                <code>    );</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Отписка</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.destroyRecipe1)">▶</button>
+            <small>
+            <pre>
+                <code>const destroy$ = new <span class="rxjs-creation">Subject</span>();</code>
+                <code><span class="rxjs-creation">of</span>(1)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">takeUntil</span>(destroy$),</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => request(value))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>({</code>
+                <code>        next: value => console.log(value),</code>
+                <code>        complete: () => console.log('complete')</code>
+                <code>    });</code>
+                <code>console.log('destroy');</code>
+                <code>destroy$.next();</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Отписка</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.destroyRecipe2)">▶</button>
+            <small>
+            <pre>
+                <code>const destroy$ = new <span class="rxjs-creation">Subject</span>();</code>
+                <code><span class="rxjs-creation">of</span>(1)</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => request(value)),</code>
+                <code>        <span class="rxjs-operator">takeUntil</span>(destroy$)</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>({</code>
+                <code>        next: value => console.log(value),</code>
+                <code>        complete: () => console.log('complete')</code>
+                <code>    });</code>
+                <code>console.log('destroy');</code>
+                <code>destroy$.next();</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Условные ветвления</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.iffyRecipe)">▶</button>
+            <small>
+            <pre>
+                <code>let flag = true;</code>
+                <br>
+                <code><span class="rxjs-creation">interval</span>(1200).<span class="rxjs-pipe">pipe</span>(<span class="rxjs-operator">take</span>(3),<span class="rxjs-operator">map</span>(v => v + 1));</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">switchMap</span>(value => {</code>
+                <code>            console.log(`value: ${value}, flag: ${flag}`);</code>
+                <code>            return flag ? request(value) : <span class="rxjs-creation">EMPTY</span></code>
+                <code>        })</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value));</code>
+                <br>
+                <code>setTimeout(() => { flag = false; }, 1200);</code>
+                <code>setTimeout(() => { flag = true; }, 2400);</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Итоги</h2>
+        <div class="slide-description">
+            <ul>
+                <li><strong>Higher Order Observables</strong> – Observable высшего порядка, в качестве значений передают другие Observable</li>
+                <li>Операторы обработки HOO: mergeMap, concatMap, switchMap, exhaustMap</li>
+                <li>Помните о порядке получения значений, отписках</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Спасибо!</h2>
+        <h2 class="text-center"><a href="https://github.com/aalexeev239/rxjs-hoo"
+               target="_blank" rel="noopener noreferrer">github.com/aalexeev239/rxjs-hoo</a>
+        </h2>
+        <img class="img-centered" width="320" src="pictures/rxjs-hoo-qr.png" alt="https://github.com/aalexeev239/rxjs-hoo">
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Бонус: window*</h2>
+        <div class="logger-content">
+            <p>Механизм противодавления (backpressure)</p>
+            <button class="btn btn-play" onclick="logger.run(code.windowOperator)">▶</button>
+            <small>
+            <pre>
+                <code>const sourceInterval$ = <span class="rxjs-creation">interval</span>(250).<span class="rxjs-pipe">pipe</span>(<span class="rxjs-operator">take</span>(20));</code>
+                <code>const windowInterval$ = <span class="rxjs-creation">interval</span>(1000);</code>
+                <code>sourceInterval$</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">window</span>(windowInterval$)</code>
+                <code>        <span class="rxjs-operator">map</span>(win => win.<span class="rxjs-pipe">pipe</span>(<span class="rxjs-operator">take</span>(2)))</code>
+                <code>        <span class="rxjs-operator">mergeAll</span>()</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value));</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <section class="slide">
+        <h2 class="slide-header">Бонус: groupBy</h2>
+        <div class="logger-content">
+            <button class="btn btn-play" onclick="logger.run(code.groupByOperator)">▶</button>
+            <small>
+            <pre>
+                <code>const people = [</code>
+                <code>    {name: 'Sue', age: 25},</code>
+                <code>    {name: 'Joe', age: 30},</code>
+                <code>    {name: 'Sarah', age: 35},</code>
+                <code>    {name: 'Frank', age: 25},</code>
+                <code>];</code>
+                <br>
+                <code><span class="rxjs-creation">interval</span>(1000).<span class="rxjs-pipe">pipe</span>(<span class="rxjs-operator">take</span>(4), <span class="rxjs-operator">map</span>(x => people(x));</code>
+                <code>    .<span class="rxjs-pipe">pipe</span>(</code>
+                <code>        <span class="rxjs-operator">groupBy</span>(person => person.age)</code>
+                <code>        <span class="rxjs-operator">mergeMap</span>(group => group</code>
+                <code>            .<span class="rxjs-pipe">pipe</span>(<span class="rxjs-operator">map</span>(({name}) => name), <span class="rxjs-operator">toArray</span>()))</code>
+                <code>    )</code>
+                <code>    .<span class="rxjs-subscribe">subscribe</span>(value => console.log(value));</code>
+            </pre>
+            </small>
+        </div>
+        <div class="logger-playground"></div>
+    </section>
+
+    <footer class="badge">
+        <a href="https://github.com/aalexeev239/rxjs-hoo">GitHub</a>
+    </footer>
+
+    <script src="node_modules/shower-core/shower.min.js"></script>
+    <script src="node_modules/rxjs/bundles/rxjs.umd.min.js"></script>
+    <script src="./custom-scripts.js"></script>
+</body>
+</html>
